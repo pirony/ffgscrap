@@ -1,0 +1,15 @@
+# dependencies
+node_modules
+# logs
+*.log
+**/*.log
+
+
+*.env
+sw.*
+worker.*
+prod
+deploy
+*.lock
+production.json
+dev.json

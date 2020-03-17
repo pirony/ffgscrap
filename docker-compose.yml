@@ -1,0 +1,29 @@
+version: '3.3'
+# DON'T FORGET TO CHANGE PROJECT NAME AND OTHERS VARIABLES IN .env FILE
+services:
+
+
+  ffg-scrap:
+    container_name: ffg-scrap
+    build: ./
+    restart: always
+    ports:
+      - '3085:3085'
+    command: bash -c "[ -s 'node_modules' ] || yarn && yarn dev"
+    environment:
+      VIRTUAL_HOST: ${APP_URI}${HOST_SUFFIX}
+      LETSENCRYPT_HOST: ${APP_URI}${HOST_SUFFIX}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
+    working_dir: "/var/www/app"
+    volumes:
+      - ./app:/var/www/app
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "5"
+        max-size: "10m"
+
+networks:
+  default:
+    external:
+      name: main-network
