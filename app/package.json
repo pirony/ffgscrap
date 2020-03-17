@@ -4,6 +4,7 @@
   "description": "",
   "scripts": {
     "start": "cross-env NODE_ENV=production node ./server.js",
+    "deploy": "cd ../nuxt && yarn generate",
     "lint": "eslint --ext .js,.vue --ignore-path .gitignore .",
     "precommit": "npm run lint"
   },

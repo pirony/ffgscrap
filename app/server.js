@@ -1,20 +1,30 @@
 const express = require('express')
 const app = express()
-const puppeteer = require('puppeteer');
-const fs = require('fs')
-const path = require('path')
+const puppeteer = require('puppeteer')
+const cors = require('cors')
+// const fs = require('fs')
+// const path = require('path')
 const ndjson = require('ndjson')
-const url = 'https://pages.ffgolf.org/resultats/liste-competitions/83502d985595aba6d37f5ac0d35c42f0';
+const url = 'https://pages.ffgolf.org/resultats/liste-competitions/'
+app.use(cors())
+app.use('/example', express.static('example'))
 
-const options = {
+const puppeteerOptions = {
   args: ['--no-sandbox']
 };
 
 const scrap = async (req,res,next) => {
+  let cancelRequest = false
+
+  req.on('close', function (err){
+     cancelRequest = true
+     console.log('closed');
+  })
+
   try {
-    const browser = await puppeteer.launch(options);
+    const browser = await puppeteer.launch(puppeteerOptions);
     const page = await browser.newPage();
-    await page.goto(url);
+    await page.goto(url + req.params.pageid);
     let trnIDS = []
     let trnID, trnInput, value
     await page.waitFor('select[name="resultats_length"]')
@@ -36,10 +46,17 @@ const scrap = async (req,res,next) => {
           }
       })
     }
-
     const clickThemAll = await page.$$('footer.container-medium a')
-    res.setHeader('Total-Items', clickThemAll.length);
+    res.setHeader('Total-Items', clickThemAll.length)
+    let serialize = ndjson.serialize()
+    serialize.on('data', function(line) {
+      res.write(line)
+    })
     for (let node of clickThemAll) {
+      if (cancelRequest) {
+        console.log('Request cancelled');
+        return
+      }
       trnID = await page.evaluate(el => el.getAttribute("trn-id"), node)
       if (!trnIDS.includes(trnID)) {
         trnIDS.push(trnID)
@@ -57,20 +74,13 @@ const scrap = async (req,res,next) => {
           let scores = Object.keys(value).reduce((acc, key, i) => {
             return [...acc, ...value[key]]
           }, [])
-          scores.forEach((sc) => {
-            console.log('type of sc: ',typeof sc);
-          })
-          let serialize = ndjson.serialize()
-          serialize.on('data', function(line) {
-            res.write(JSON.stringify(JSON.parse(line)))
-          })
           serialize.write(scores)
           // To FILE
           // fs.writeFileSync(path.join(__dirname, '/../static/datas/' + trnID + '.json'), JSON.stringify(value));
         }
       }
     }
-    console.timeEnd('start')
+    serialize.end()
     res.end()
     browser.close()
     next()
@@ -79,13 +89,14 @@ const scrap = async (req,res,next) => {
   }
 }
 
-app.get('/scrappy', async (req, res, next) => {
+app.get('/scrap/:pageid', async (req, res, next) => {
+  res.setHeader('Access-Control-Expose-Headers', 'Total-Items, Transfer-Encoding, Connection');
   res.setHeader('Connection', 'Transfer-Encoding');
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.setHeader('Transfer-Encoding', 'chunked');
   scrap(req, res, next)
 })
 
-app.listen(3085, '0.0.0.0', function () {
-  console.log('Example app listening on port 3085!')
+app.listen(process.env.APP_PORT || 3001, '0.0.0.0', function () {
+  console.log(`FFG Scrap listening on port ${process.env.APP_PORT || 3001}!`)
 })

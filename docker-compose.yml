@@ -14,6 +14,7 @@ services:
       VIRTUAL_HOST: ${APP_URI}${HOST_SUFFIX}
       LETSENCRYPT_HOST: ${APP_URI}${HOST_SUFFIX}
       LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
+      APP_PORT: ${APP_PORT}
     working_dir: "/var/www/app"
     volumes:
       - ./app:/var/www/app

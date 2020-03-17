@@ -5,8 +5,9 @@ Scrap FFG
 With docker
 
 ```bash
-git clone git@github.com:pirony/ffgscrap.git directory
-cd directory
+git clone git@github.com:pirony/ffgscrap.git ffgscrap
+cd ffgscrap
+echo 'APP_PORT=3001' >.env # replace 3001 with the port of your choice
 docker-compose up
 ```
 
@@ -20,7 +21,7 @@ yarn
 yarn start
 ```
 ## Usage
-Visiting [http://localhost:3001/${club_results_page_id}](http://localhost:3001/83502d985595aba6d37f5ac0d35c42f0) will return a node stream whose chunks are [ndjson](https://www.npmjs.com/package/ndjson) encoded competitions results
+Visiting [http://localhost:3001/scrap/${club_results_page_id}](http://localhost:3001/scrap/83502d985595aba6d37f5ac0d35c42f0) will return a node stream whose chunks are [ndjson](https://www.npmjs.com/package/ndjson) encoded competitions results.
 
 
 ## Contributing
