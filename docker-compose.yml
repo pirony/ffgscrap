@@ -8,7 +8,7 @@ services:
     build: ./
     restart: always
     ports:
-      - '3085:3085'
+      - '${APP_PORT}:${APP_PORT}'
     command: bash -c "[ -s 'node_modules' ] || yarn && yarn dev"
     environment:
       VIRTUAL_HOST: ${APP_URI}${HOST_SUFFIX}
