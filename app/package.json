@@ -1,18 +1,18 @@
 {
-  "name": "scrappyffg",
+  "name": "scrapffg",
   "version": "0.0.1",
   "description": "",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development nodemon ./server.js",
+    "start": "cross-env NODE_ENV=production node ./server.js",
     "lint": "eslint --ext .js,.vue --ignore-path .gitignore .",
     "precommit": "npm run lint"
   },
   "author": "Romain Pouchol <romainpouchol@gmail.com> (https://romainpouchol.fr)",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/pirony/scrappyffg-web/issues"
+    "url": "https://github.com/pirony/scrapffg/issues"
   },
-  "homepage": "https://github.com/pirony/scrappyffg-web#readme",
+  "homepage": "https://github.com/pirony/scrapffg#readme",
   "dependencies": {
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.4",

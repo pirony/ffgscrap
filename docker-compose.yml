@@ -5,11 +5,11 @@ services:
 
   ffg-scrap:
     container_name: ffg-scrap
-    build: ./
+    build: ./app
     restart: always
     ports:
       - '${APP_PORT}:${APP_PORT}'
-    command: bash -c "[ -s 'node_modules' ] || yarn && yarn dev"
+    command: bash -c "[ -s 'node_modules' ] || yarn && yarn start"
     environment:
       VIRTUAL_HOST: ${APP_URI}${HOST_SUFFIX}
       LETSENCRYPT_HOST: ${APP_URI}${HOST_SUFFIX}
