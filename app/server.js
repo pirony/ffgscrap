@@ -4,7 +4,10 @@ const puppeteer = require('puppeteer')
 const cors = require('cors')
 // const fs = require('fs')
 // const path = require('path')
+const splitly = require('splitly')
 const ndjson = require('ndjson')
+const fetch = require('node-fetch')
+const {SaveStreamToDtb} = require('./scrapToDtb/transforms')
 const url = 'https://pages.ffgolf.org/resultats/liste-competitions/'
 app.use(cors())
 app.use('/example', express.static('example'))
@@ -14,6 +17,7 @@ const puppeteerOptions = {
 };
 
 const scrap = async (req,res,next) => {
+  let last_x = req.query.last_x
   let cancelRequest = false
 
   req.on('close', function (err){
@@ -46,16 +50,19 @@ const scrap = async (req,res,next) => {
           }
       })
     }
-    const clickThemAll = await page.$$('footer.container-medium a')
+    let clickThemAll = await page.$$('footer.container-medium a')
     res.setHeader('Total-Items', clickThemAll.length)
     let serialize = ndjson.serialize()
     serialize.on('data', function(line) {
       res.write(line)
     })
+
+    if (last_x) {
+      clickThemAll = clickThemAll.slice(0, parseInt(last_x))
+    }
     for (let node of clickThemAll) {
       if (cancelRequest) {
-        console.log('Request cancelled');
-        return
+        break
       }
       trnID = await page.evaluate(el => el.getAttribute("trn-id"), node)
       if (!trnIDS.includes(trnID)) {
@@ -81,7 +88,9 @@ const scrap = async (req,res,next) => {
       }
     }
     serialize.end()
-    res.end()
+    res.send({
+      message: 'requete terminée'
+    })
     browser.close()
     next()
   } catch (e) {
@@ -95,6 +104,20 @@ app.get('/scrap/:pageid', async (req, res, next) => {
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.setHeader('Transfer-Encoding', 'chunked');
   scrap(req, res, next)
+})
+
+app.get('/testStream', async (req, res, next) => {
+  let count = 0
+  const response = await fetch('http://ffg-scrap:3001/scrap/' + '83502d985595aba6d37f5ac0d35c42f0')
+  console.log('gooooooooooo');
+  let stream = response.body
+  stream.on('error', (err) => console.log(err))
+  stream
+    .pipe(splitly.createStream())
+    .on('error', (err) => console.log(err))
+    .pipe(new SaveStreamToDtb())
+    .on('error', (err) => console.log(err))
+    .pipe(res)
 })
 
 app.listen(process.env.APP_PORT || 3001, '0.0.0.0', function () {
